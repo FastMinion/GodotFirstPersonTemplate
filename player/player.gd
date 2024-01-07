@@ -5,20 +5,39 @@ extends CharacterBody3D
 @export var ACCELERATION: float = 4.0
 @export var MAX_SPEED: float = 15.0
 
+@export var mouse_sens: float = 0.1
+@export var controller_sens: float = 2.5
+
+const CAMERA_ANGLE_LIMIT: float = deg_to_rad(90)
+
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var head: Node3D = $Head
 
+var is_controller: bool = false
+var inverted: bool = false
+
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if inverted:
+		mouse_sens = -mouse_sens
+		controller_sens = -controller_sens
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-		var mouse_motion: InputEventMouseMotion = event as InputEventMouseMotion
-		rotate_y(deg_to_rad(mouse_motion.relative.x * -0.1))
-		head.rotate_x(deg_to_rad(mouse_motion.relative.y * -0.1))
+	if OS.get_name() == "Android":
+		if event is InputEventScreenDrag:
+			is_controller = false
+			var drag_motion: InputEventScreenDrag = event as InputEventScreenDrag
+			_rotate_camera(drag_motion.relative,mouse_sens)
+	else:
+		if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+			is_controller = false
+			var mouse_motion: InputEventMouseMotion = event as InputEventMouseMotion
+			_rotate_camera(mouse_motion.relative, mouse_sens)
+	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
+		is_controller = true
 
 
 func _input(event):
@@ -35,8 +54,6 @@ func _physics_process(delta: float) -> void:
 	if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
 		return
 
-		
-
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
@@ -46,7 +63,11 @@ func _physics_process(delta: float) -> void:
 	var input_dir: Vector2 = Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_back"
 	)
-
+	if is_controller:
+		var look_dir: Vector2 = Input.get_vector(
+		"look_left", "look_right", "look_up", "look_down"
+		)
+		_rotate_camera(look_dir,controller_sens)
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	var target_velocity: Vector3 = direction * MAX_SPEED
@@ -59,3 +80,8 @@ func _physics_process(delta: float) -> void:
 	velocity = velocity.lerp(Vector3.ZERO, FRICTION * delta)
 
 	move_and_slide()
+
+func _rotate_camera(motion: Vector2, sensitivity: float):
+	rotate_y(deg_to_rad(-motion.x * sensitivity))
+	head.rotate_x(deg_to_rad(-motion.y * sensitivity))
+	head.rotation.x = clampf(head.rotation.x, -CAMERA_ANGLE_LIMIT, CAMERA_ANGLE_LIMIT)
