@@ -4,3 +4,6 @@
 # Editor specific ignores
 .vscode/
 .idea/
+
+# Python specific ignores
+venv/
