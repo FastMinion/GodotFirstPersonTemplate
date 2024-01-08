@@ -19,15 +19,13 @@ var jumpButton: Control
 var is_controller: bool = false
 var inverted: bool = false
 
-
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	joy = get_node_or_null("../UI/Joystick")
+	jumpButton = get_node_or_null("../UI/JumpButton")
 	if OS.get_name() == "Android":
-		joy = get_node("../UI/Joystick")
-		jumpButton = get_node("../UI/JumpButton")
-		if joy == null:
-			return
-		joy.connect("onJoyMove",onJoyMove)
+		if joy == null: return
+		if jumpButton == null: return
 		jumpButton.connect("btnJumpPressed",jumpPressed)
 	if inverted:
 		mouse_sens = -mouse_sens
@@ -63,8 +61,14 @@ func _input(event) -> void:
 func _physics_process(delta: float) -> void:
 	if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
 		return
+		
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+	
+	if Input.is_action_just_pressed("jump") and is_on_floor():
+		jumpPressed()
 
-	var input_dir: Vector2 = Input.get_vector(
+	var input_dir: Vector2 = joy.axis_vector if (joy != null and joy.axis_vector != Vector2.ZERO)  else Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_back"
 	)
 	if is_controller:
@@ -72,15 +76,6 @@ func _physics_process(delta: float) -> void:
 		"look_left", "look_right", "look_up", "look_down"
 		)
 		_rotate_camera(look_dir,controller_sens)
-
-	_move(delta,input_dir)
-
-func _move(delta: float, input_dir: Vector2) -> void:
-	if not is_on_floor():
-		velocity.y -= gravity * delta
-	
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
 		
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
@@ -99,9 +94,6 @@ func _rotate_camera(motion: Vector2, sensitivity: float) -> void:
 	rotate_y(deg_to_rad(-motion.x * sensitivity))
 	head.rotate_x(deg_to_rad(-motion.y * sensitivity))
 	head.rotation.x = clampf(head.rotation.x, -CAMERA_ANGLE_LIMIT, CAMERA_ANGLE_LIMIT)
-
-func onJoyMove(axis_h: float, axis_v: float) -> void:
-	_move(get_physics_process_delta_time(),Vector2(axis_h,axis_v).normalized())
 
 func jumpPressed() -> void:
 	velocity.y = JUMP_VELOCITY
