@@ -1,6 +1,8 @@
-[gd_scene load_steps=20 format=3 uid="uid://bnf3m1m2mduu0"]
+[gd_scene load_steps=22 format=3 uid="uid://cml61sqr12ikb"]
 
 [ext_resource type="PackedScene" uid="uid://c22efsjubn3uy" path="res://player/player.tscn" id="1_y4ir0"]
+[ext_resource type="PackedScene" uid="uid://b8r1741j4km3s" path="res://ui/joystick.tscn" id="2_xtw7c"]
+[ext_resource type="PackedScene" uid="uid://yobd5ioj20da" path="res://ui/JumpButton.tscn" id="3_owhlq"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_fladv"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -158,3 +160,21 @@ mesh = SubResource("CylinderMesh_yrb60")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Platform/StaticBody3D"]
 shape = SubResource("ConcavePolygonShape3D_r7i8g")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Joystick" parent="UI" instance=ExtResource("2_xtw7c")]
+layout_mode = 1
+offset_top = 608.0
+offset_bottom = 608.0
+
+[node name="JumpButton" parent="UI" instance=ExtResource("3_owhlq")]
+offset_left = 328.0
+offset_top = 3.0
+offset_right = 328.0
+offset_bottom = 3.0
+scale = Vector2(2, 2)

@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://yobd5ioj20da"]
+
+[ext_resource type="Script" path="res://ui/JumpButton.gd" id="1_eeku6"]
+[ext_resource type="Texture2D" uid="uid://cxthw6pvj862t" path="res://textures/Buttons/jump.png" id="1_kinhm"]
+
+[node name="JumpButton" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+scale = Vector2(3, 3)
+script = ExtResource("1_eeku6")
+
+[node name="TextureButton" type="TouchScreenButton" parent="."]
+texture_normal = ExtResource("1_kinhm")
+
+[connection signal="pressed" from="TextureButton" to="." method="_on_texture_button_pressed"]

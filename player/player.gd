@@ -13,6 +13,8 @@ const CAMERA_ANGLE_LIMIT: float = deg_to_rad(90)
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var head: Node3D = $Head
+var joy: Control
+var jumpButton: Control
 
 var is_controller: bool = false
 var inverted: bool = false
@@ -20,6 +22,13 @@ var inverted: bool = false
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if OS.get_name() == "Android":
+		joy = get_node("../UI/Joystick")
+		jumpButton = get_node("../UI/JumpButton")
+		if joy == null:
+			return
+		joy.connect("onJoyMove",onJoyMove)
+		jumpButton.connect("btnJumpPressed",jumpPressed)
 	if inverted:
 		mouse_sens = -mouse_sens
 		controller_sens = -controller_sens
@@ -30,7 +39,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventScreenDrag:
 			is_controller = false
 			var drag_motion: InputEventScreenDrag = event as InputEventScreenDrag
-			_rotate_camera(drag_motion.relative,mouse_sens)
+			if float(get_window().size.x)/2 < drag_motion.position.x:
+				_rotate_camera(drag_motion.relative,mouse_sens)
 	else:
 		if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 			is_controller = false
@@ -40,7 +50,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		is_controller = true
 
 
-func _input(event):
+func _input(event) -> void:
 	if event.is_action_pressed("pause"):
 		var new_mouse_mode: int = (
 			Input.MOUSE_MODE_CAPTURED
@@ -54,12 +64,6 @@ func _physics_process(delta: float) -> void:
 	if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
 		return
 
-	if not is_on_floor():
-		velocity.y -= gravity * delta
-
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
-
 	var input_dir: Vector2 = Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_back"
 	)
@@ -68,6 +72,16 @@ func _physics_process(delta: float) -> void:
 		"look_left", "look_right", "look_up", "look_down"
 		)
 		_rotate_camera(look_dir,controller_sens)
+
+	_move(delta,input_dir)
+
+func _move(delta: float, input_dir: Vector2) -> void:
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+	
+	if Input.is_action_just_pressed("jump") and is_on_floor():
+		velocity.y = JUMP_VELOCITY
+		
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
 	var target_velocity: Vector3 = direction * MAX_SPEED
@@ -81,7 +95,13 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-func _rotate_camera(motion: Vector2, sensitivity: float):
+func _rotate_camera(motion: Vector2, sensitivity: float) -> void:
 	rotate_y(deg_to_rad(-motion.x * sensitivity))
 	head.rotate_x(deg_to_rad(-motion.y * sensitivity))
 	head.rotation.x = clampf(head.rotation.x, -CAMERA_ANGLE_LIMIT, CAMERA_ANGLE_LIMIT)
+
+func onJoyMove(axis_h: float, axis_v: float) -> void:
+	_move(get_physics_process_delta_time(),Vector2(axis_h,axis_v).normalized())
+
+func jumpPressed() -> void:
+	velocity.y = JUMP_VELOCITY
