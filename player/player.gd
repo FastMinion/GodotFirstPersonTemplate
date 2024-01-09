@@ -3,12 +3,13 @@ extends CharacterBody3D
 const JUMP_VELOCITY: float = 4.5
 const AIR_ACCELERATION: float = 3.0
 const MOUSE_SENSITIVITY: float = 0.01
-const CONTROLLER_SENSITIVITY: float = 0.1
+const CONTROLLER_SENSITIVITY: float = 0.05
 const WALK_SPEED: float = 5.0
 const RUN_SPEED: float = 8.0
 var speed: float = WALK_SPEED
 
 const CAMERA_ANGLE_LIMIT: float = deg_to_rad(90)
+const RUN_ACTIVATION_TRESHOLD: float = -1.5
 
 const BOB_FREQUENCY: float = 2.0
 const BOB_AMPLITUDE: float = 0.05
@@ -68,20 +69,21 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("jump"):
 		jumpPressed()
 
-
-	if Input.is_action_pressed("run"):
-		speed = RUN_SPEED
-	else:
-		speed = WALK_SPEED
-
 	var input_dir: Vector2 = joy.axis_vector if (joy != null and joy.axis_vector != Vector2.ZERO)  else Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_back"
 	)
+	
+	if Input.is_action_pressed("run") or input_dir.y < RUN_ACTIVATION_TRESHOLD:
+		speed = RUN_SPEED
+	else:
+		speed = WALK_SPEED
+	
 	if is_controller:
 		var look_dir: Vector2 = Input.get_vector(
 		"look_left", "look_right", "look_up", "look_down"
 		)
 		_rotate_camera(look_dir,CONTROLLER_SENSITIVITY)
+
 
 	var direction: Vector3 = -(
 		(head.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
