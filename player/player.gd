@@ -36,9 +36,6 @@ func _ready() -> void:
 		if joy == null: return
 		if jumpButton == null: return
 		jumpButton.connect("btnJumpPressed",jumpPressed)
-	if inverted:
-		mouse_sens = -mouse_sens
-		controller_sens = -controller_sens
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -84,7 +81,7 @@ func _physics_process(delta: float) -> void:
 		var look_dir: Vector2 = Input.get_vector(
 		"look_left", "look_right", "look_up", "look_down"
 		)
-		_rotate_camera(look_dir,controller_sens)
+		_rotate_camera(look_dir,CONTROLLER_SENSITIVITY)
 
 	var direction: Vector3 = -(
 		(head.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
@@ -109,14 +106,15 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-func _rotate_camera(motion: Vector2, sensitivity: float) -> void:
-	rotate_y(deg_to_rad(-motion.x * sensitivity))
-	head.rotate_x(deg_to_rad(-motion.y * sensitivity))
-	head.rotation.x = clampf(head.rotation.x, -CAMERA_ANGLE_LIMIT, CAMERA_ANGLE_LIMIT)
+func _rotate_camera(motion: Vector2, sens: float) -> void:
+	var sensitivity = sens if not inverted else -sens
+	head.rotate_y(deg_to_rad(-motion.x * sensitivity))
+	camera.rotate_x(deg_to_rad(-motion.y * sensitivity))
+	camera.rotation.x = clampf(camera.rotation.x, -CAMERA_ANGLE_LIMIT, CAMERA_ANGLE_LIMIT)
 
 func jumpPressed() -> void:
-  if is_on_floor():
-	  velocity.y = JUMP_VELOCITY
+	if is_on_floor():
+		velocity.y = JUMP_VELOCITY
 
 func _bob_and_sway_player_head(timer: float) -> Vector3:
 	var bob: float = sin(timer * BOB_FREQUENCY) * BOB_AMPLITUDE
