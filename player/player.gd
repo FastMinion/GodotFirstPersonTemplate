@@ -9,7 +9,7 @@ const RUN_SPEED: float = 8.0
 var speed: float = WALK_SPEED
 
 const CAMERA_ANGLE_LIMIT: float = deg_to_rad(90)
-const RUN_ACTIVATION_TRESHOLD: float = -1.5
+const RUN_ACTIVATION_THRESHOLD: float = -1.5
 
 const BOB_FREQUENCY: float = 2.0
 const BOB_AMPLITUDE: float = 0.05
@@ -37,7 +37,6 @@ func _ready() -> void:
 		if joy == null: return
 		if jumpButton == null: return
 		jumpButton.connect("btnJumpPressed",jumpPressed)
-
 
 func _unhandled_input(event: InputEvent) -> void:
 	if OS.get_name() == "Android":
@@ -69,11 +68,11 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("jump"):
 		jumpPressed()
 
-	var input_dir: Vector2 = joy.axis_vector if (joy != null and joy.axis_vector != Vector2.ZERO)  else Input.get_vector(
+	var input_dir: Vector2 = Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_back"
-	)
+	) if (joy == null or joy.axis_vector == Vector2.ZERO) else joy.axis_vector
 	
-	if Input.is_action_pressed("run") or input_dir.y < RUN_ACTIVATION_TRESHOLD:
+	if Input.is_action_pressed("run") or input_dir.y < RUN_ACTIVATION_THRESHOLD:
 		speed = RUN_SPEED
 	else:
 		speed = WALK_SPEED
@@ -83,7 +82,6 @@ func _physics_process(delta: float) -> void:
 		"look_left", "look_right", "look_up", "look_down"
 		)
 		_rotate_camera(look_dir,CONTROLLER_SENSITIVITY)
-
 
 	var direction: Vector3 = -(
 		(head.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()

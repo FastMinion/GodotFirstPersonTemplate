@@ -16,7 +16,7 @@ func _ready() -> void:
 	if OS.get_name() != "Android":
 		queue_free()
 	MAX_POS = Vector2(outer.size.x - inside.size.x,outer.size.y - inside.size.y)
-	DEFAULT_POSITION = Vector2(MAX_POS.x/2, MAX_POS.y/2)
+	DEFAULT_POSITION = Vector2(MAX_POS.x*0.5, MAX_POS.y*0.5)
 	inside.position = DEFAULT_POSITION
 
 func in_threshold(value: float) -> float:
@@ -36,7 +36,7 @@ func _on_inner_gui_input(event) -> void:
 			inside.position = DEFAULT_POSITION
 
 	if event is InputEventScreenDrag:
-		inside.position += event.relative
-		inside.position.x = clampf(inside.position.x, 0, MAX_POS.x)
-		inside.position.y = clampf(inside.position.y, -MAX_POS.y, MAX_POS.y)
-	
+		inside.position = Vector2(
+			clampf(inside.position.x + event.relative.x, 0, MAX_POS.x),
+			clampf(inside.position.y + event.relative.y, -MAX_POS.y, MAX_POS.y)
+		)
