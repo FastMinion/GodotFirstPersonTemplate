@@ -3,7 +3,7 @@ extends CharacterBody3D
 const JUMP_VELOCITY: float = 4.5
 const AIR_ACCELERATION: float = 3.0
 const MOUSE_SENSITIVITY: float = 0.01
-const CONTROLLER_SENSITIVITY: float = 0.05
+const CONTROLLER_SENSITIVITY: float = 0.1
 const WALK_SPEED: float = 5.0
 const RUN_SPEED: float = 8.0
 var speed: float = WALK_SPEED
@@ -108,8 +108,8 @@ func _physics_process(delta: float) -> void:
 
 func _rotate_camera(motion: Vector2, sens: float) -> void:
 	var sensitivity = sens if not inverted else -sens
-	head.rotate_y(deg_to_rad(-motion.x * sensitivity))
-	camera.rotate_x(deg_to_rad(-motion.y * sensitivity))
+	head.rotate_y(-motion.x * sensitivity)
+	camera.rotate_x(-motion.y * sensitivity)
 	camera.rotation.x = clampf(camera.rotation.x, -CAMERA_ANGLE_LIMIT, CAMERA_ANGLE_LIMIT)
 
 func jumpPressed() -> void:
