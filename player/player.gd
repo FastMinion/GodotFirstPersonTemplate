@@ -23,33 +23,29 @@ var gravity: float = 9.8
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/View
 
-var joy: Control
-var jumpButton: Control
-
+var is_player_running: bool = false
 var is_controller: bool = false
-var inverted: bool = false
+var inverted_mouse: bool = false
+
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	joy = get_node_or_null("../UI/Joystick")
-	jumpButton = get_node_or_null("../UI/JumpButton")
-	if OS.get_name() == "Android":
-		if joy == null: return
-		if jumpButton == null: return
-		jumpButton.connect("btnJumpPressed",jumpPressed)
+	add_to_group("Player")
+
 
 func _unhandled_input(event: InputEvent) -> void:
-	if OS.get_name() == "Android":
+	if OS.get_name() == "Android" or OS.get_name() == "iOS":
 		if event is InputEventScreenDrag:
 			is_controller = false
-			if float(get_window().size.x)/2 < event.position.x:
-				_rotate_camera(event.relative,MOUSE_SENSITIVITY)
+			if get_window().size.x * 0.5 < event.position.x:
+				_rotate_camera(event.relative, MOUSE_SENSITIVITY)
 	else:
 		if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 			is_controller = false
 			_rotate_camera(event.relative, MOUSE_SENSITIVITY)
 	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
 		is_controller = true
+
 
 func _input(event):
 	if event.is_action_pressed("pause"):
@@ -64,27 +60,25 @@ func _input(event):
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= gravity * delta
-	
+
 	if Input.is_action_just_pressed("jump"):
-		jumpPressed()
+		_on_jump_pressed()
 
 	var input_dir: Vector2 = Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_back"
-	) if (joy == null or joy.axis_vector == Vector2.ZERO) else joy.axis_vector
-	
-	if Input.is_action_pressed("run") or input_dir.y < RUN_ACTIVATION_THRESHOLD:
+	)
+
+	if is_controller:
+		var look_dir: Vector2 = Input.get_vector("look_left", "look_right", "look_up", "look_down")
+		_rotate_camera(look_dir, CONTROLLER_SENSITIVITY)
+
+	if Input.is_action_pressed("run") or is_player_running:
 		speed = RUN_SPEED
 	else:
 		speed = WALK_SPEED
-	
-	if is_controller:
-		var look_dir: Vector2 = Input.get_vector(
-		"look_left", "look_right", "look_up", "look_down"
-		)
-		_rotate_camera(look_dir,CONTROLLER_SENSITIVITY)
 
 	var direction: Vector3 = -(
-		(head.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+		(head.transform.basis * Vector3(input_dir.x, 0, clampf(input_dir.y, -1, 1))).normalized()
 	)
 
 	if is_on_floor():
@@ -106,15 +100,18 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
+
 func _rotate_camera(motion: Vector2, sens: float) -> void:
-	var sensitivity = sens if not inverted else -sens
+	var sensitivity = sens if not inverted_mouse else -sens
 	head.rotate_y(-motion.x * sensitivity)
 	camera.rotate_x(-motion.y * sensitivity)
 	camera.rotation.x = clampf(camera.rotation.x, -CAMERA_ANGLE_LIMIT, CAMERA_ANGLE_LIMIT)
 
-func jumpPressed() -> void:
+
+func _on_jump_pressed() -> void:
 	if is_on_floor():
 		velocity.y = JUMP_VELOCITY
+
 
 func _bob_and_sway_player_head(timer: float) -> Vector3:
 	var bob: float = sin(timer * BOB_FREQUENCY) * BOB_AMPLITUDE

@@ -1,8 +1,8 @@
-[gd_scene load_steps=22 format=3 uid="uid://cml61sqr12ikb"]
+[gd_scene load_steps=22 format=3 uid="uid://cvqe0en2gy54r"]
 
 [ext_resource type="PackedScene" uid="uid://c22efsjubn3uy" path="res://player/player.tscn" id="1_y4ir0"]
 [ext_resource type="PackedScene" uid="uid://b8r1741j4km3s" path="res://ui/joystick.tscn" id="2_xtw7c"]
-[ext_resource type="PackedScene" uid="uid://yobd5ioj20da" path="res://ui/JumpButton.tscn" id="3_owhlq"]
+[ext_resource type="PackedScene" uid="uid://sm8g1jxseto8" path="res://ui/jump_button.tscn" id="3_owhlq"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_fladv"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -171,10 +171,10 @@ offset_bottom = 40.0
 layout_mode = 1
 offset_top = 608.0
 offset_bottom = 608.0
+joystick_left_action = "move_left"
+joystick_right_action = "move_right"
+joystick_up_action = "move_forward"
+joystick_down_action = "move_back"
 
 [node name="JumpButton" parent="UI" instance=ExtResource("3_owhlq")]
-offset_left = 328.0
-offset_top = 3.0
-offset_right = 328.0
-offset_bottom = 3.0
-scale = Vector2(2, 2)
+input_action = "jump"
