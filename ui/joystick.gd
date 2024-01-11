@@ -6,6 +6,8 @@ extends Control
 @export var joystick_up_action: String
 @export var joystick_down_action: String
 
+const RUN_ACTIVATION_THRESHOLD: float = -1.5
+
 var MAX_POS: Vector2 = Vector2.ZERO
 var BASE_POSITION: Vector2 = Vector2.ZERO
 
@@ -34,7 +36,7 @@ func _ready() -> void:
 	joystick_down_event.action = joystick_down_action
 
 
-func in_threshold(value: float) -> float:
+func _in_threshold(value: float) -> float:
 	if abs(value) < THRESHOLD:
 		return 0.0
 	return value
@@ -42,27 +44,26 @@ func in_threshold(value: float) -> float:
 
 func _physics_process(delta):
 	var axis_vector: Vector2 = Vector2(
-		in_threshold((inside.position.x - BASE_POSITION.x) / BASE_POSITION.x),
-		in_threshold((inside.position.y - BASE_POSITION.y) / BASE_POSITION.y)
+		_in_threshold((inside.position.x - BASE_POSITION.x) / BASE_POSITION.x),
+		_in_threshold((inside.position.y - BASE_POSITION.y) / BASE_POSITION.y)
 	)
 	_axis_to_input_event_x(axis_vector)
 	_axis_to_input_event_y(axis_vector)
+	Input.flush_buffered_events()
 
 
 func _axis_to_input_event_x(axis_vector: Vector2) -> void:
 	joystick_left_event.pressed = axis_vector.x < 0
 	joystick_right_event.pressed = axis_vector.x > 0
 	Input.parse_input_event(joystick_left_event)
-	await _input_event_timeout(0.1)
 	Input.parse_input_event(joystick_right_event)
 
 
 func _axis_to_input_event_y(axis_vector: Vector2):
-	player.is_player_running = axis_vector.y < player.RUN_ACTIVATION_THRESHOLD
+	player.is_player_running = axis_vector.y < RUN_ACTIVATION_THRESHOLD
 	joystick_up_event.pressed = axis_vector.y < 0
 	joystick_down_event.pressed = axis_vector.y > 0
 	Input.parse_input_event(joystick_up_event)
-	await _input_event_timeout(0.1)
 	Input.parse_input_event(joystick_down_event)
 
 

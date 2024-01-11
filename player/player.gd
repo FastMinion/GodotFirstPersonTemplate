@@ -9,7 +9,6 @@ const RUN_SPEED: float = 8.0
 var speed: float = WALK_SPEED
 
 const CAMERA_ANGLE_LIMIT: float = deg_to_rad(90)
-const RUN_ACTIVATION_THRESHOLD: float = -1.5
 
 const BOB_FREQUENCY: float = 2.0
 const BOB_AMPLITUDE: float = 0.05

@@ -1,7 +1,7 @@
 extends Control
 
 @export var button_normal_texture: Texture2D
-@export var input_action: String
+@export var on_button_press_action: String
 
 @onready var button = $TextureButton
 
@@ -12,7 +12,7 @@ func _ready() -> void:
 	if OS.get_name() != "Android" and OS.get_name() != "iOS":
 		queue_free()
 	button.texture_normal = button_normal_texture
-	button_event.action = input_action
+	button_event.action = on_button_press_action
 
 
 func _on_texture_button_pressed():
